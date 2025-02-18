@@ -1,0 +1,175 @@
+{
+  "name": "WF-4.2: Email Sender",
+  "nodes": [
+    {
+      "parameters": {
+        "sendTo": "={{ $json.message.content.sendTo }}",
+        "subject": "={{ $json.message.content.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.message.content.message }}",
+        "options": {
+          "appendAttribution": false,
+          "bccList": "={{ $json.message.content.bccList }}",
+          "ccList": "={{ $json.message.content.ccList }}",
+          "senderName": "Rohith Gade"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        260,
+        -140
+      ],
+      "id": "f1d6cf86-fcce-4ec4-899c-13d0fc5695d3",
+      "name": "Gmail",
+      "webhookId": "d332007e-87fe-454f-be56-3b22b8e471a9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1CRovldWWiSb0Zxh",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "parse the \"query\" and output the parameters separately.",
+              "role": "system"
+            },
+            {
+              "content": "={{ JSON.stringify($json.query) }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -160,
+        -140
+      ],
+      "id": "d08885b3-20f4-412b-bcfc-6ac995521346",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "Wpz92gS5tHENlMa7",
+          "name": "OpenAi for N8N - 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9327964d-d848-406a-8f67-9d34d09783a7",
+              "name": "response",
+              "value": "Sent",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        -140
+      ],
+      "id": "74036684-5486-4044-903d-920fcced49eb",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "response"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -380,
+        -140
+      ],
+      "id": "7413c794-54a2-417a-bf2c-3b2cd965876a",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "content": "## WF-4.2: Email Sender",
+        "height": 80,
+        "width": 340
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        -280
+      ],
+      "typeVersion": 1,
+      "id": "c036bd02-ac9a-48a6-b9be-74d832b3026f",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "50e984e0-92ad-49c1-8605-fcb7cd172781",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d2d70a2fb453af06e00a928d8941f9b9244bb70831be608328c9e9fa7d1bda3"
+  },
+  "id": "K1HInvzbgPZeBdZj",
+  "tags": []
+}

@@ -1,0 +1,236 @@
+{
+  "name": "WF-4.3: Agent to Send Emails",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -560,
+        -180
+      ],
+      "id": "6830139e-d2a8-4eff-8379-c45342eefe5d",
+      "name": "When chat message received",
+      "webhookId": "3a4f2772-5d68-46fb-b014-faf53d595f8f"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Context & Background:\nYou are an intelligent AI assistant integrated into an n8n workflow to handle various automation tasks. Your primary role is to process incoming chat messages, generate relevant responses using an AI language model, retrieve contact information from a Pinecone vector store, and send emails when necessary.\n\nThis workflow consists of:\n\nA Chat Trigger that listens for incoming messages.\nAn AI Agent that processes user queries and determines actions.\nAn OpenAI Chat Model (GPT-4o-mini) for generating responses.\nA Pinecone Vector Store for retrieving contact details.\nAn Email Sender Agent, which is responsible for composing and sending emails.\nAn OpenAI Embeddings Module for improving search and retrieval tasks.\nInstructions for AI Agent:\nProcess Incoming Messages:\n\nCapture the chat input ({{ $json.chatInput }}).\nDetermine whether the user’s request requires a response, contact lookup, or email sending.\nUse the OpenAI Chat Model to generate a reply if it’s a standard query.\nIf the request involves retrieving contact details, call the Pinecone Vector Store.\nIf an email needs to be sent, format and pass the request to the Email Sender Agent.\nEmail Composition & Sending:\n\nIf the user wants to send an email, gather all required parameters.\nUse the following structure for emails:\nTo (sendTo)\nSubject (subject)\nMessage (message)\nCC List (ccList)\nBCC List (bccList)\nEmail Type (emailType)\nEnsure clarity and conciseness in the email body.\nIf any required details are missing, prompt the user for more information.\nRetrieving Contact Information:\n\nWhen requested, query the Pinecone Vector Store (Contacts_Data) for details such as email addresses.\nIf the contact is not found, inform the user and suggest alternatives.\nGeneral Behavior:\n\nMaintain a professional yet friendly tone.\nBe concise while ensuring all necessary details are included.\nAvoid redundant responses and ensure logical flow.\nAlways confirm critical actions like sending emails before execution.\n\n\nSign off the email from Rohith Gade",
+          "returnIntermediateSteps": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -140,
+        -220
+      ],
+      "id": "0339d747-e43a-4d55-b42c-644c0494f3e0",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -340,
+        60
+      ],
+      "id": "76008255-88d0-48bb-9e5b-340872c141a6",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Wpz92gS5tHENlMa7",
+          "name": "OpenAi for N8N - 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "Contacts",
+        "toolDescription": "Call this to retrieve contacts like email address ",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "gdocs",
+          "mode": "list",
+          "cachedResultName": "gdocs"
+        },
+        "options": {
+          "pineconeNamespace": "Contacts"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        80
+      ],
+      "id": "f651dbaf-25b5-42da-b80f-11f3fa13eaeb",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "FrJEGMxlggGaiow6",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -200,
+        220
+      ],
+      "id": "2229cbd6-f6f9-42f9-b250-48a282ca852d",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "Wpz92gS5tHENlMa7",
+          "name": "OpenAi for N8N - 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "Email_Sender",
+        "description": "Call this tool when you need to send an email.",
+        "workflowId": {
+          "__rl": true,
+          "value": "K1HInvzbgPZeBdZj",
+          "mode": "list",
+          "cachedResultName": "Email_Sender"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [
+            "response"
+          ],
+          "schema": [
+            {
+              "id": "response",
+              "displayName": "response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        240,
+        80
+      ],
+      "id": "5831601a-216d-4f31-a040-07726c0c0ee6",
+      "name": "Email_Sender"
+    },
+    {
+      "parameters": {
+        "content": "## WF-4.3: Agent to Send Emails",
+        "height": 80,
+        "width": 360
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -180,
+        -340
+      ],
+      "typeVersion": 1,
+      "id": "87e00ddc-7703-49d7-8cb4-320a1c92198f",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email_Sender": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e2458404-fce8-4f1d-a7f1-1c5e715296a5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d2d70a2fb453af06e00a928d8941f9b9244bb70831be608328c9e9fa7d1bda3"
+  },
+  "id": "1Znhpk7vjhaI5K2a",
+  "tags": []
+}
